@@ -1,0 +1,48 @@
+_BASE_: ../oneformer_R50_bs16_50ep.yaml  # Inherit base configurations from another file
+
+MODEL:
+  RESNETS:
+    STEM_TYPE: "resnet"  # Define the stem type for ResNets
+  BACKBONE:
+    NAME: "D2SwinTransformer"  # Use Swin Transformer as the backbone
+  SWIN:
+    EMBED_DIM: 192
+    DEPTHS: [2, 2, 18, 2]
+    NUM_HEADS: [6, 12, 24, 48]
+    WINDOW_SIZE: 12
+    APE: False
+    DROP_PATH_RATE: 0.3
+    PATCH_NORM: True
+    PRETRAIN_IMG_SIZE: 384
+  WEIGHTS: ".../150_16_swin_l_oneformer_coco_100ep.pth"  # Path to pre-trained weights
+  PIXEL_MEAN: [123.675, 116.280, 103.530]  # Pixel mean for normalization
+  PIXEL_STD: [58.395, 57.120, 57.375]  # Pixel standard deviation for normalization
+  ONE_FORMER:
+    NUM_OBJECT_QUERIES: 100  # Number of object queries for OneFormer
+
+SOLVER:
+  IMS_PER_BATCH: 1
+  BASE_LR: 0.001
+  STEPS: (21334, 23120)
+  MAX_ITER: 24000
+  WARMUP_FACTOR: 1.0
+  WARMUP_ITERS: 5
+  WEIGHT_DECAY: 0.05
+  OPTIMIZER: "ADAMW"
+  BACKBONE_MULTIPLIER: 0.1
+  CLIP_GRADIENTS:
+    ENABLED: True
+    CLIP_TYPE: "norm"
+    CLIP_VALUE: 1.0
+    NORM_TYPE: 2.0
+  AMP:
+    ENABLED: False  # Automatic Mixed Precision (AMP) disabled
+
+TEST:
+  DETECTIONS_PER_IMAGE: 100  # Number of detections per image during testing
+  EVAL_PERIOD: 65
+DATASETS:
+  TRAIN: ("custom_train",)
+  #TEST_PANOPTIC: ("coco_2017_val_panoptic_with_sem_seg",)  # to evaluate instance and semantic performance as well
+  TEST_INSTANCE: ("custom_test",)
+  #TEST_SEMANTIC: ("coco_2017_val_panoptic_with_sem_seg",)
